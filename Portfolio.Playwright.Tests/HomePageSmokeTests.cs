@@ -1,6 +1,5 @@
-using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
-using NUnit.Framework;
+using Portfolio.Playwright.Tests.Pages;
 
 namespace Portfolio.Playwright.Tests;
 
@@ -10,7 +9,7 @@ public sealed class HomePageSmokeTests : PageTest
     [Test]
     public async Task LandingPage_ShowsExpectedHeading()
     {
-        // Local HTML makes this foundational test reliable and self-contained.
+        // Keep the first smoke test self-contained while we learn the Page Object pattern.
         await Page.SetContentAsync("""
             <!doctype html>
             <html lang="en">
@@ -19,7 +18,8 @@ public sealed class HomePageSmokeTests : PageTest
             </html>
             """);
 
-        await Expect(Page.GetByRole(AriaRole.Heading, new() { Name = "Welcome to QA Demo" }))
-            .ToBeVisibleAsync();
+        var homePage = new HomePage(Page);
+
+        await Expect(homePage.WelcomeHeading).ToBeVisibleAsync();
     }
 }

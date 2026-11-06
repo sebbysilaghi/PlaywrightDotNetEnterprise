@@ -1,4 +1,3 @@
-using Microsoft.Playwright;
 using Microsoft.Playwright.NUnit;
 using Portfolio.Playwright.Tests.Fixtures;
 using Portfolio.Playwright.Tests.Pages;
@@ -8,28 +7,28 @@ namespace Portfolio.Playwright.Tests;
 [TestFixture]
 public sealed class OrderSearchTests : PageTest
 {
-    [TestCaseSource(typeof(OrderSearchCases), nameof(OrderSearchCases.SearchScenarios))]
-    public async Task Search_ReturnsExpectedResults(
-        string query,
-        int expectedCount,
-        string? expectedOrder)
+    [Test]
+    public async Task Search_WithExistingReference_ReturnsMatchingOrder()
     {
         await Page.SetContentAsync(OrderSearchDemo.Html);
         var orders = new OrderSearchPage(Page);
 
-        await orders.SearchForOrderAsync(query);
+        await orders.SearchForOrderAsync("ORD-1002");
 
-        await Expect(orders.Results.GetByRole(AriaRole.Listitem))
-            .ToHaveCountAsync(expectedCount);
+        await Expect(orders.MatchingOrder("ORD-1002")).ToHaveCountAsync(1);
+        await Expect(orders.Results.GetByRole(Microsoft.Playwright.AriaRole.Listitem)).ToHaveCountAsync(1);
+        await Expect(orders.EmptyMessage).ToHaveTextAsync("1 order(s) found");
+    }
 
-        var expectedMessage = expectedCount == 0
-            ? "No orders found"
-            : $"{expectedCount} order(s) found";
-        await Expect(orders.EmptyMessage).ToHaveTextAsync(expectedMessage);
+    [Test]
+    public async Task Search_WithUnknownReference_ShowsEmptyState()
+    {
+        await Page.SetContentAsync(OrderSearchDemo.Html);
+        var orders = new OrderSearchPage(Page);
 
-        if (expectedOrder is not null)
-        {
-            await Expect(orders.MatchingOrder(expectedOrder)).ToHaveCountAsync(1);
-        }
+        await orders.SearchForOrderAsync("ORD-9999");
+
+        await Expect(orders.Results.GetByRole(Microsoft.Playwright.AriaRole.Listitem)).ToHaveCountAsync(0);
+        await Expect(orders.EmptyMessage).ToHaveTextAsync("No orders found");
     }
 }

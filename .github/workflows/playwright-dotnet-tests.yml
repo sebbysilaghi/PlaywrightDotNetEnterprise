@@ -1,0 +1,53 @@
+name: Playwright .NET tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ui-tests:
+    name: Chromium smoke and regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore PlaywrightDotNetEnterprise.sln
+
+      - name: Build solution
+        run: dotnet build PlaywrightDotNetEnterprise.sln --configuration Release --no-restore
+
+      - name: Install Chromium and Linux dependencies
+        shell: pwsh
+        run: ./Portfolio.Playwright.Tests/bin/Release/net8.0/playwright.ps1 install --with-deps chromium
+
+      - name: Execute NUnit / Playwright tests
+        run: >-
+          dotnet test PlaywrightDotNetEnterprise.sln
+          --configuration Release
+          --no-build
+          --logger "trx;LogFileName=playwright-tests.trx"
+          --results-directory TestResults
+
+      - name: Publish TRX test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-dotnet-trx
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+          retention-days: 14

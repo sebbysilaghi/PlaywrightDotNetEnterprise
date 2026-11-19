@@ -1,4 +1,3 @@
-using Microsoft.Playwright.NUnit;
 using NUnit.Framework;
 using Portfolio.Playwright.Tests.Pages;
 
@@ -8,7 +7,7 @@ namespace Portfolio.Playwright.Tests.Fixtures;
 /// Creates a fresh order-search page for each test case. NUnit runs this setup
 /// after Playwright's PageTest infrastructure has provided the current Page.
 /// </summary>
-public abstract class OrderSearchTestBase : PageTest
+public abstract class OrderSearchTestBase : TracingPageTest
 {
     protected OrderSearchPage Orders { get; private set; } = null!;
 
